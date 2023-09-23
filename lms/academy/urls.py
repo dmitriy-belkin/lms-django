@@ -9,4 +9,9 @@ router.register(r'user-lessons', views.UserLessonViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
+    # new
+    path('api/user-lessons/', views.UserLessonsList.as_view(), name='user-lessons-list'),
+    path('api/user-product-lessons/<int:product_id>/', views.UserProductLessonsList.as_view(),
+         name='user-product-lessons-list'),
+    path('api/product-statistics/', views.ProductStatisticsList.as_view(), name='product-statistics-list'),
 ]
