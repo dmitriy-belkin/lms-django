@@ -1,9 +1,9 @@
-from rest_framework import viewsets, generics
-from .models import Product, Lesson, UserLesson
-from .serializers import ProductSerializer, LessonSerializer, UserLessonSerializer
+from rest_framework import generics
+from rest_framework import viewsets
+from .models import Lesson, UserLesson, Product, UserAccess
+from .serializers import ProductSerializer, LessonSerializer, UserLessonSerializer, ProductStatsSerializer
 
-from .serializers import ProductStatisticsSerializer
-from django.db.models import Sum, Count, F
+from django.db.models import Sum
 
 
 class ProductViewSet(viewsets.ModelViewSet):
@@ -22,30 +22,43 @@ class UserLessonViewSet(viewsets.ModelViewSet):
 
 
 # new
-class UserLessonsList(generics.ListAPIView):
-    serializer_class = LessonSerializer
+class UserLessonListView(generics.ListAPIView):
+    serializer_class = UserLessonSerializer
 
     def get_queryset(self):
         user = self.request.user
-        return Lesson.objects.filter(products__owner=user, userlesson__user=user)
+        return UserLesson.objects.filter(user=user)
 
 
-class UserProductLessonsList(generics.ListAPIView):
+class ProductLessonListView(generics.ListAPIView):
     serializer_class = UserLessonSerializer
 
     def get_queryset(self):
         user = self.request.user
         product_id = self.kwargs['product_id']
-        return UserLesson.objects.filter(user=user, lesson__products=product_id)
+        return UserLesson.objects.filter(user=user, lesson__product_id=product_id)
 
 
-class ProductStatisticsList(generics.ListAPIView):
-    serializer_class = ProductStatisticsSerializer
+class ProductStatsView(generics.ListAPIView):
+    serializer_class = ProductStatsSerializer
 
     def get_queryset(self):
-        return Product.objects.annotate(
-            total_viewed_lessons=Count('lessons__userlesson', filter=F('lessons__userlesson__viewed')),
-            total_view_time=Sum('lessons__userlesson__view_time_seconds'),
-            total_students=Count('lessons__userlesson__user', distinct=True),
-            purchase_percentage=(Count('accesses') / Count('lessons__userlesson__user', distinct=True)) * 100
-        )
+        user = self.request.user
+        products = Product.objects.all()
+        queryset = []
+        for product in products:
+            access_count = UserAccess.objects.filter(product=product).count()
+            lesson_count = UserLesson.objects.filter(lesson__product=product, user=user).count()
+            total_watch_time = UserLesson.objects.filter(lesson__product=product, user=user).aggregate(Sum('watch_time'))['watch_time__sum']
+            total_users = UserAccess.objects.filter(product=product).count()
+            purchase_percentage = (access_count / total_users) * 100 if total_users > 0 else 0
+
+            queryset.append({
+                'product_id': product.id,
+                'product_name': product.name,
+                'lesson_count': lesson_count,
+                'total_watch_time': total_watch_time,
+                'total_users': total_users,
+                'purchase_percentage': purchase_percentage,
+            })
+        return queryset
