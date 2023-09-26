@@ -1,4 +1,5 @@
 # LMS on Django
+![Python Version](https://img.shields.io/badge/Python-3.10.6-blue)
 
 ## Релизовано:
 - **Построение архитектуры**
