@@ -1,6 +1,8 @@
+from django.shortcuts import render, redirect, get_object_or_404
 from rest_framework import generics
 from rest_framework import viewsets
 from .models import Lesson, UserLesson, Product, UserAccess
+from .forms import ProductForm
 from .serializers import ProductSerializer, LessonSerializer, UserLessonSerializer, ProductStatsSerializer
 
 from django.db.models import Sum
@@ -21,7 +23,6 @@ class UserLessonViewSet(viewsets.ModelViewSet):
     serializer_class = UserLessonSerializer
 
 
-# new
 class UserLessonListView(generics.ListAPIView):
     serializer_class = UserLessonSerializer
 
@@ -49,7 +50,8 @@ class ProductStatsView(generics.ListAPIView):
         for product in products:
             access_count = UserAccess.objects.filter(product=product).count()
             lesson_count = UserLesson.objects.filter(lesson__product=product, user=user).count()
-            total_watch_time = UserLesson.objects.filter(lesson__product=product, user=user).aggregate(Sum('watch_time'))['watch_time__sum']
+            total_watch_time = UserLesson.objects.filter(lesson__product=product,
+                                                         user=user).aggregate(Sum('watch_time'))['watch_time__sum']
             total_users = UserAccess.objects.filter(product=product).count()
             purchase_percentage = (access_count / total_users) * 100 if total_users > 0 else 0
 
@@ -62,3 +64,58 @@ class ProductStatsView(generics.ListAPIView):
                 'purchase_percentage': purchase_percentage,
             })
         return queryset
+
+
+def index(request):
+    products = Product.objects.all()
+    lessons = Lesson.objects.all()
+    user_lessons = UserLesson.objects.all()
+    user_access = UserAccess.objects.all()
+
+    context = {
+        'products': products,
+        'lessons': lessons,
+        'user_lessons': user_lessons,
+        'user_access': user_access,
+    }
+
+    return render(request, 'index.html', context)
+
+
+def profile(request):
+    user = request.user
+
+    context = {
+        'user': user,
+    }
+
+    return render(request, 'profile.html', context)
+
+
+def create_product(request):
+    if request.method == 'POST':
+        form = ProductForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect('product_list')
+    else:
+        form = ProductForm()
+    return render(request, 'create_product.html', {'form': form})
+
+
+def edit_product(request, pk):
+    product = Product.objects.get(pk=pk)
+    if request.method == 'POST':
+        form = ProductForm(request.POST, request.FILES, instance=product)
+        if form.is_valid():
+            form.save()
+            return redirect('product_list')
+    else:
+        form = ProductForm(instance=product)
+    return render(request, 'edit_product.html', {'form': form})
+
+
+def product_detail(request, product_id):
+    product = get_object_or_404(Product, pk=product_id)
+    lessons = Lesson.objects.filter(product=product)
+    return render(request, 'product_detail.html', {'product': product, 'lessons': lessons})

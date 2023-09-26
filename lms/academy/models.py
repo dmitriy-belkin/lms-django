@@ -5,6 +5,10 @@ from django.contrib.auth.models import User
 class Product(models.Model):
     name = models.CharField(max_length=255)
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
+    description = models.TextField(default='Описание отсутствует')
+    price = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+    image = models.ImageField(upload_to='product_images/', blank=True, null=True)
+    duration = models.IntegerField(default=0)
 
     def __str__(self):
         return self.name
@@ -13,6 +17,7 @@ class Product(models.Model):
 
 
 class Lesson(models.Model):
+    product = models.ForeignKey(Product, null=True, on_delete=models.CASCADE)
     title = models.CharField(max_length=255)
     video_url = models.URLField()
     duration_seconds = models.IntegerField()
