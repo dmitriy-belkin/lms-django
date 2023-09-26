@@ -1,7 +1,3 @@
-wq {
-    display: flex;
-    flex-wrap: wrap;
-    margin-top: calc(-1 * var(--bs-gutter-y));
-    margin-right: calc(-.5 * var(--bs-gutter-x));
-    margin-left: calc(-.5 * var(--bs-gutter-x));
+footer img {
+    margin: 0 10px 0 10px;
 }
