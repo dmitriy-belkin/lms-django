@@ -9,12 +9,16 @@ class Product(models.Model):
     def __str__(self):
         return self.name
 
+    objects = models.Manager()
+
 
 class Lesson(models.Model):
     title = models.CharField(max_length=255)
     video_url = models.URLField()
     duration_seconds = models.IntegerField()
     products = models.ManyToManyField(Product, related_name='lessons')
+
+    objects = models.Manager()
 
 
 class UserLesson(models.Model):
@@ -23,6 +27,8 @@ class UserLesson(models.Model):
     viewed = models.BooleanField(default=False)
     view_time_seconds = models.IntegerField(default=0)
     video_progress = models.FloatField(default=0.0)
+
+    objects = models.Manager()
 
     def update_video_progress(self, new_progress):
         self.video_progress = new_progress
@@ -41,5 +47,8 @@ class UserAccess(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
 
+    objects = models.Manager()
+
     def __str__(self):
+        # noinspection PyUnresolvedReferences
         return f"{self.user.username} - {self.product.name}"
