@@ -1,8 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from rest_framework import generics
-from rest_framework import viewsets
+from rest_framework import generics, viewsets
+from django.http import JsonResponse
 from .models import Lesson, UserLesson, Product, UserAccess
 from .forms import ProductForm
+from django.contrib.auth import authenticate, login
 from .serializers import ProductSerializer, LessonSerializer, UserLessonSerializer, ProductStatsSerializer
 
 from django.db.models import Sum
@@ -119,3 +120,20 @@ def product_detail(request, product_id):
     product = get_object_or_404(Product, pk=product_id)
     lessons = Lesson.objects.filter(product=product)
     return render(request, 'product_detail.html', {'product': product, 'lessons': lessons})
+
+
+def login_view(request):
+    if request.method == 'POST':
+
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+
+        user = authenticate(request, username=username, password=password)
+
+        if user is not None:
+            login(request, user)
+            return redirect('index')
+        else:
+            return JsonResponse({'success': False, 'error_message': 'Неверные учетные данные'})
+
+    return render(request, 'login.html')

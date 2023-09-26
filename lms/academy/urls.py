@@ -14,9 +14,10 @@ urlpatterns = [
     path('api/product-stats/', views.ProductStatsView.as_view(), name='product-stats'),
     path('', views.index, name='index'),
     path('', include(router.urls)),
-    path('login/', auth_views.LoginView.as_view(), name='login'),
     path('accounts/profile/', views.profile, name='profile'),
     path('create/', views.create_product, name='create_product'),
     path('edit/<int:pk>/', views.edit_product, name='edit_product'),
     path('product/<int:product_id>/', views.product_detail, name='product_detail'),
+    # path('login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
+    path('login/', views.login_view, name='login'),
 ]
