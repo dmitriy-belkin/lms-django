@@ -24,6 +24,11 @@
 
 
 
+- - Главная страница
+![index.png](readme-img/index.png)
+
+
+
 ## Инструкция
 ### 1. Клонировать проект:
 `clone https://github.com/dmitriy-belkin/lms-django.git`
