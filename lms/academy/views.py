@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from rest_framework import generics, viewsets
 from django.http import JsonResponse
-from .models import Lesson, UserLesson, Product, UserAccess
+from .models import Lesson, UserLesson, Product, UserAccess, Enrollment
 from .forms import ProductForm
 from django.contrib.auth import authenticate, login
 from .serializers import ProductSerializer, LessonSerializer, UserLessonSerializer, ProductStatsSerializer
@@ -137,3 +137,19 @@ def login_view(request):
             return JsonResponse({'success': False, 'error_message': 'Неверные учетные данные'})
 
     return render(request, 'login.html')
+
+
+def product_detail(request, product_id):
+    product = Product.objects.get(id=product_id)
+
+    enrollment, created = Enrollment.objects.get_or_create(product=product, student=request.user)
+
+    enrolled_students = Enrollment.objects.filter(product=product).count()
+
+    context = {
+        'product': product,
+        'enrollment': enrollment,
+        'enrolled_students': enrolled_students,
+    }
+
+    return render(request, 'product_detail.html', context)
